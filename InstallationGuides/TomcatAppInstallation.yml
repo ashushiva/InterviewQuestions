@@ -1,0 +1,28 @@
+---
+- hosts: webservers
+  vars:
+    - http_port: 8080
+    
+  tasks:
+    - name: add group "tomcat"
+      group: name=tomcat
+
+    - name: add user "tomcat"
+      user: name=tomcat group=tomcat createhome=yes
+      become: true
+
+    - name: Download Tomcat
+      get_url: url=http://apachemirror.wuchna.com/tomcat/tomcat-8/v8.5.46/bin/apache-tomcat-8.5.46.tar.gz dest=/opt/apache-tomcat-8.5.46.tar.gz
+
+    - name: Extract Tomcat archive
+      command: tar zxvf /opt/apache-tomcat-8.5.46.tar.gz -C /opt/ creates=/opt/apache-tomcat-8.5.46
+
+    - name: Change ownership of Tomcat installation
+      file: path=/opt/apache-tomcat-8.5.46 owner=tomcat group=tomcat state=directory recurse=yes
+
+    - name: Change the working directory to Tomcat Apache before running Tomcat Apache
+      shell: ./startup.sh
+      args:
+       chdir: /opt/apache-tomcat-8.5.46/bin/
+      become: true
+      become_user: tomcat
